@@ -1,0 +1,7 @@
+name = "Communicator"
+uuid = "cf580b8e-2e8d-49c0-8af6-01aa0b4ad63f"
+authors = ["Andrey Stoyan <andrey.stoyan.csam@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+ZMQ = "c2297ded-f4af-51ae-bb23-16f91089e4e1"
