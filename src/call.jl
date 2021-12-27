@@ -25,46 +25,45 @@ decode(p::Payload, ::Type{UInt32})::UInt32 =
 
 encode(s::String) = s
 
-function recv(socket, ::Type{UInt32})
-    response = ZMQ.recv(socket, Payload)
-    return decode(response, UInt32)
-end
-
 function recv(socket, ::Type{String})
     response = ZMQ.recv(socket, String)
     return response
 end
 
+function recv(socket, ::Type{T}) where {T}
+    response = ZMQ.recv(socket, Payload)
+    return decode(response, T)
+end
+
 # TODO make async
 function (f::Function{Arg,Ret})(arg::Arg)::Ret where {Arg,Ret}
-    # TODO close socket
-    socket = ZMQ.Socket(ZMQ.DEALER)
-    ZMQ.connect(socket, f.client.endpoint)
+    use(ZMQ.Socket(ZMQ.DEALER), ZMQ.close) do socket
+        ZMQ.connect(socket, f.client.endpoint)
 
-    # TODO make enums
-    ZMQ.send(socket, "QUERY", true)
-    # TODO generate UUID
-    uuid = "2a122c04-6400-11ec-90d6-0242ac120003"
-    ZMQ.send(socket, uuid, true)
-    ZMQ.send(socket, encode(arg), true)
-    ZMQ.send(socket, f.client.functionname, false)
+        ZMQ.send(socket, "QUERY", true)
+        # TODO generate UUID
+        uuid = "2a122c04-6400-11ec-90d6-0242ac120003"
+        ZMQ.send(socket, uuid, true)
+        ZMQ.send(socket, encode(arg), true)
+        ZMQ.send(socket, f.client.functionname, false)
 
-    confirmation_msg = ZMQ.recv(socket, String)
-    @assert (confirmation_msg == "QUERY_RECEIVED") confirmation_msg
-    confirmation_uuid = ZMQ.recv(socket, String)
-    @assert (confirmation_uuid == uuid) confirmation_uuid
+        confirmation_msg = ZMQ.recv(socket, String)
+        @assert (confirmation_msg == "QUERY_RECEIVED") confirmation_msg
+        confirmation_uuid = ZMQ.recv(socket, String)
+        @assert (confirmation_uuid == uuid) confirmation_uuid
 
-    rc = ZMQ.recv(socket, String)
-    result_uuid = ZMQ.recv(socket, String)
-    @assert (result_uuid == uuid) result_uuid
-    if rc == "RESPONSE_UNKNOWN_FUNCTION"
-        functionname = ZMQ.recv(socket, String)
-        throw(UnknownFunctionError(functionname))
-    elseif rc == "RESPONSE_EXCEPTION"
-        msg = ZMQ.recv(socket, String)
-        throw(RemoteFunctionException(msg))
+        rc = ZMQ.recv(socket, String)
+        result_uuid = ZMQ.recv(socket, String)
+        @assert (result_uuid == uuid) result_uuid
+        if rc == "RESPONSE_UNKNOWN_FUNCTION"
+            functionname = ZMQ.recv(socket, String)
+            throw(UnknownFunctionError(functionname))
+        elseif rc == "RESPONSE_EXCEPTION"
+            msg = ZMQ.recv(socket, String)
+            throw(RemoteFunctionException(msg))
+        end
+
+        @assert (rc == "RESPONSE_RESULT") rc
+        return recv(socket, Ret)
     end
-
-    @assert (rc == "RESPONSE_RESULT") rc
-    return recv(socket, Ret)
 end
