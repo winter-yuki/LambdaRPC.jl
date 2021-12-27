@@ -2,6 +2,20 @@ import ZMQ
 
 Payload = Vector{UInt8}
 
+abstract type CommunicatorException <: Exception end
+
+struct UnknownFunctionError <: CommunicatorException
+    name::String
+end
+
+Base.showerror(io::IO, e::UnknownFunctionError) = print(io, e.name, " function is unknown")
+
+struct RemoteFunctionException <: CommunicatorException
+    msg::String
+end
+
+Base.showerror(io::IO, e::RemoteFunctionException) = print(io, "exception message: ", e.msg)
+
 encode(i::UInt32) = Payload(digits(i, base = 256, pad = 4) |> reverse)
 
 decode(p::Payload, ::Type{UInt32})::UInt32 =
@@ -36,7 +50,6 @@ function (f::Function{Arg,Ret})(arg::Arg)::Ret where {Arg,Ret}
     ZMQ.send(socket, f.client.functionname, false)
 
     confirmation_msg = ZMQ.recv(socket, String)
-    # TODO throw exception
     @assert (confirmation_msg == "QUERY_RECEIVED") confirmation_msg
     confirmation_uuid = ZMQ.recv(socket, String)
     @assert (confirmation_uuid == uuid) confirmation_uuid
@@ -45,12 +58,11 @@ function (f::Function{Arg,Ret})(arg::Arg)::Ret where {Arg,Ret}
     result_uuid = ZMQ.recv(socket, String)
     @assert (result_uuid == uuid) result_uuid
     if rc == "RESPONSE_UNKNOWN_FUNCTION"
-        # TODO throw exception
         functionname = ZMQ.recv(socket, String)
-        @assert false "Unknown function $(functionname)"
+        throw(UnknownFunctionError(functionname))
     elseif rc == "RESPONSE_EXCEPTION"
         msg = ZMQ.recv(socket, String)
-        @assert false msg
+        throw(RemoteFunctionException(msg))
     end
 
     @assert (rc == "RESPONSE_RESULT") rc
