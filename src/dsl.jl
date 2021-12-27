@@ -1,23 +1,36 @@
-struct FunctionalClientFactory end
+struct FunctionBuilder{Arg,Ret} end
 
-const fn = FunctionalClientFactory()
+fn(::Type{Arg}) where {Arg} = FunctionBuilder{Arg,()}()
 
-Base.getindex(::FunctionalClientFactory, name::String, endpoint::String) =
-    FunctionalClient(endpoint, name)
+function Base.:(=>)(
+    builder::FunctionBuilder{Arg,()},
+    ::Type{Ret},
+)::FunctionBuilder{Arg,Ret} where {Arg,Ret}
+    FunctionBuilder{Arg,Ret}()
+end
 
-struct FunctionalClient
-    endpoint::String
+Endpoint = String
+
+struct Function{Arg,Ret}
+    endpoint::Endpoint
     functionname::String
 end
 
-(client::FunctionalClient)(::Type{Arg}) where {Arg} = UnitFunction{Arg}(client)
+(builder::FunctionBuilder{Arg,Ret})(
+    endpoint::Endpoint,
+    functionname::String,
+) where {Arg,Ret} = Function{Arg,Ret}(endpoint, functionname)
 
-struct UnitFunction{Arg}
-    client::FunctionalClient
-end
-
-Base.:>>(f::UnitFunction{Arg}, ::Type{Ret}) where {Arg,Ret} = Function{Arg,Ret}(f.client)
-
-struct Function{Arg,Ret}
-    client::FunctionalClient
+macro client(endpoint::Union{Symbol,Expr,Endpoint}, block)
+    # TODO make working if endpoint is in local scope at the callsite
+    endpoint = endpoint isa Endpoint ? endpoint : Endpoint(Core.eval(__module__, endpoint))
+    @assert block.head == :block
+    for s in block.args
+        s isa LineNumberNode && continue
+        s.head != :(=) && continue
+        (name, expr) = s.args
+        builder = Core.eval(__module__, expr)
+        f = builder isa FunctionBuilder ? builder(endpoint, string(name)) : builder
+        Core.eval(__module__, :($name = $f))
+    end
 end

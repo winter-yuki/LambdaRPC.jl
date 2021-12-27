@@ -1,10 +1,10 @@
-import Communicator as Co
+using Communicator
 
 function main()
-    endpoint = "tcp://127.0.0.1:8888"
-    # TODO make macro
-    f = Co.fn["f", endpoint](UInt32) >> UInt32
-    g = Co.fn["g", endpoint](UInt32) >> String
+    @client "tcp://127.0.0.1:8888" begin
+        f = fn(UInt32) => UInt32
+        g = fn(UInt32) => String
+    end
 
     res1 = f(UInt32(2))
     println("f(2) = $res1")

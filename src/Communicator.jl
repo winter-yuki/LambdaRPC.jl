@@ -1,6 +1,6 @@
 module Communicator
 
-export fn
+export fn, @client
 
 include("utils.jl")
 include("dsl.jl")
