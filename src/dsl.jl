@@ -1,22 +1,30 @@
-struct FunctionBuilder{Arg,Ret} end
+Endpoint = String
 
-fn(::Type{Arg}) where {Arg} = FunctionBuilder{Arg,()}()
-
-function Base.:(=>)(
-    builder::FunctionBuilder{Arg,()},
-    ::Type{Ret},
-)::FunctionBuilder{Arg,Ret} where {Arg,Ret}
-    FunctionBuilder{Arg,Ret}()
+Base.@kwdef struct FunctionBuilder{Arg,Ret,isMeta}
+    endpoint::Endpoint = ""
+    functionname::String = ""
 end
 
-Endpoint = String
+fn = FunctionBuilder{(),(),()}()
+
+Base.getindex(::FunctionBuilder{(),(),()}, name::String, endpoint::Endpoint) =
+    FunctionBuilder{(),(),false}(endpoint, name)
+
+(builder::FunctionBuilder{(),(),isMeta})(::Type{Arg}) where {Arg,isMeta} =
+    FunctionBuilder{Arg,(),isMeta}(builder.endpoint, builder.functionname)
+
+Base.:(=>)(::FunctionBuilder{Arg,(),()}, ::Type{Ret}) where {Arg,Ret} =
+    FunctionBuilder{Arg,Ret,true}()
+
+Base.:(=>)(builder::FunctionBuilder{Arg,(),false}, ::Type{Ret}) where {Arg,Ret} =
+    Function{Arg,Ret}(builder.endpoint, builder.functionname)
 
 struct Function{Arg,Ret}
     endpoint::Endpoint
     functionname::String
 end
 
-(builder::FunctionBuilder{Arg,Ret})(
+(::FunctionBuilder{Arg,Ret,true})(
     endpoint::Endpoint,
     functionname::String,
 ) where {Arg,Ret} = Function{Arg,Ret}(endpoint, functionname)
