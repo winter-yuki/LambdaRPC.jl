@@ -21,7 +21,7 @@ function recv(socket, ::Type{String})
 end
 
 # TODO make async
-function (f::Function{UInt32, UInt32})(arg::UInt32)::UInt32
+function (f::Function{Arg, Ret})(arg::Arg)::Ret where {Arg, Ret}
     # TODO close socket
     socket = ZMQ.Socket(ZMQ.DEALER)
     ZMQ.connect(socket, f.client.endpoint)
@@ -53,11 +53,5 @@ function (f::Function{UInt32, UInt32})(arg::UInt32)::UInt32
     end
 
     @assert (rc == "RESPONSE_RESULT") rc
-    return recv(socket, UInt32)
+    return recv(socket, Ret)
 end
-
-# TODO
-# function (f::Function{Arg, Ret})(arg::Arg)::Ret where {Arg, Ret}
-#     error("Hello from unit unsupported type function!")
-#     return Ret()
-# end
