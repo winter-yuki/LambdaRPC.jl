@@ -10,14 +10,14 @@ struct FunctionalClient
     functionname::String
 end
 
-(client::FunctionalClient)(argtype::Type) = UnitFunction{argtype}(client)
+(client::FunctionalClient)(::Type{Arg}) where {Arg} = UnitFunction{Arg}(client)
 
 struct UnitFunction{Arg}
     client::FunctionalClient
 end
 
-Base.:>>(f::UnitFunction{Arg}, returntype::Type) where Arg = Function{Arg, returntype}(f.client)
+Base.:>>(f::UnitFunction{Arg}, ::Type{Ret}) where {Arg,Ret} = Function{Arg,Ret}(f.client)
 
-struct Function{Arg, Ret}
+struct Function{Arg,Ret}
     client::FunctionalClient
 end
