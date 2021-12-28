@@ -1,30 +1,39 @@
 Endpoint = String
 
-Base.@kwdef struct FunctionBuilder{Arg,Ret,isMeta}
+"""
+Validates that function builder is fully constructed in both two types of dsl.
+"""
+@enum DslTypeProtocol begin
+    dslunknown
+    metadsl
+    nemetadsl
+end
+
+Base.@kwdef struct FunctionBuilder{Arg,Ret,dslType}
     endpoint::Endpoint = ""
     functionname::String = ""
 end
-
-fn = FunctionBuilder{(),(),()}()
-
-Base.getindex(::FunctionBuilder{(),(),()}, name::String, endpoint::Endpoint) =
-    FunctionBuilder{(),(),false}(endpoint, name)
-
-(builder::FunctionBuilder{(),(),isMeta})(::Type{Arg}) where {Arg,isMeta} =
-    FunctionBuilder{Arg,(),isMeta}(builder.endpoint, builder.functionname)
-
-Base.:(=>)(::FunctionBuilder{Arg,(),()}, ::Type{Ret}) where {Arg,Ret} =
-    FunctionBuilder{Arg,Ret,true}()
-
-Base.:(=>)(builder::FunctionBuilder{Arg,(),false}, ::Type{Ret}) where {Arg,Ret} =
-    Function{Arg,Ret}(builder.endpoint, builder.functionname)
 
 struct Function{Arg,Ret}
     endpoint::Endpoint
     functionname::String
 end
 
-(::FunctionBuilder{Arg,Ret,true})(
+fn = FunctionBuilder{(),(),dslunknown}()
+
+Base.getindex(::FunctionBuilder{(),(),dslunknown}, name::String, endpoint::Endpoint) =
+    FunctionBuilder{(),(),nemetadsl}(endpoint, name)
+
+(builder::FunctionBuilder{(),(),dslType})(::Type{Arg}) where {Arg,dslType} =
+    FunctionBuilder{Arg,(),dslType}(builder.endpoint, builder.functionname)
+
+Base.:(=>)(::FunctionBuilder{Arg,(),dslunknown}, ::Type{Ret}) where {Arg,Ret} =
+    FunctionBuilder{Arg,Ret,metadsl}()
+
+Base.:(=>)(builder::FunctionBuilder{Arg,(),nemetadsl}, ::Type{Ret}) where {Arg,Ret} =
+    Function{Arg,Ret}(builder.endpoint, builder.functionname)
+
+(::FunctionBuilder{Arg,Ret,metadsl})(
     endpoint::Endpoint,
     functionname::String,
 ) where {Arg,Ret} = Function{Arg,Ret}(endpoint, functionname)
