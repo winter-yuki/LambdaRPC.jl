@@ -1,4 +1,5 @@
 import ZMQ
+import UUIDs
 
 Payload = Vector{UInt8}
 
@@ -35,14 +36,12 @@ function recv(socket, ::Type{T}) where {T}
     return decode(response, T)
 end
 
-# TODO make async
 function (f::Function{Arg,Ret})(arg::Arg)::Ret where {Arg,Ret}
     use(ZMQ.Socket(ZMQ.DEALER), ZMQ.close) do socket
         ZMQ.connect(socket, f.endpoint)
 
+        uuid = string(UUIDs.uuid4())
         ZMQ.send(socket, "QUERY", true)
-        # TODO generate UUID
-        uuid = "2a122c04-6400-11ec-90d6-0242ac120003"
         ZMQ.send(socket, uuid, true)
         ZMQ.send(socket, encode(arg), true)
         ZMQ.send(socket, f.functionname, false)
