@@ -1,3 +1,5 @@
+Endpoint = String
+
 function use(f, resource, close = close)
     try
         f(resource)

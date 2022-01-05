@@ -1,9 +1,12 @@
 module Communicator
 
-export fn, @client
+export @libserver, start, startblocking, @libclient, setendpoint
 
 include("utils.jl")
-include("dsl.jl")
-include("call.jl")
+include("serializer.jl")
+include("server/server.jl")
+include("server/dsl.jl")
+include("client/client.jl")
+include("client/dsl.jl")
 
 end # module
