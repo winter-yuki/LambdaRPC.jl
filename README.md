@@ -1,46 +1,74 @@
 # communicator-jl
 
+## Run examples
+
 ```
-julia --project=. src/examples/client.jl
+$ julia --project=. src/examples/server.jl
+$ julia --project=. src/examples/client.jl
 ```
 
-## Syntax client
-
-```julia
-@fn f::(Int, String) => String
-f[endpoint](1, "2")
-```
+## LibServer API
 
 ```julia
-@fn(endpoint) f::(Int, String) => String
-f(1, "2")
-```
+module Lib
 
-```julia
-@fns begin
-    f::Int => Int
-    g::String => String
+square(x::UInt32)::UInt32 = x * x
+
+end # module
+
+using Communicator
+
+function main()
+    endpoint = "tcp://127.0.0.1:8888"
+    @libserver server endpoint begin
+        square:Lib.square::UInt32 => UInt32
+    end
+    startblocking(server)
 end
-g[endpoint]("aa")
+
+main()
 ```
 
+## LibClient API
+
 ```julia
-@fns endpoint begin
-    f::Int => Int
-    g::String => String
+module Lib
+
+using Communicator
+
+@libclient begin
+    square:"square"::UInt32 => UInt32
 end
-g("aa")
+
+end # module
+
+using Communicator
+
+function main()
+    setendpoint(Lib.lib, "tcp://127.0.0.1:8888")
+    @assert Lib.square(UInt32(2)) == 4
+    @assert Lib.square["tcp://127.0.0.1:8899"](UInt32(2)) == 4
+end
+
+main()
 ```
 
-Can find endpoint automatically if it is not specified.
+## Communicator vs gRPC
 
-## Syntax server
+Advs
+- HOF support (+ pure functions result cache)
+- Familiar in-language declarations (?)
 
-```julia
-server = FunctionalServer(endpoint)
-@fns server begin
-    f::Int => Int = myf
-    g::String => String = myg
-end
-server.start()
+Disadvs:
+- Custom implementation
+- Serialization ambiguity
+
+## Serialization
+
+```
+val bytes = Cbor.encodeToByteArray(...)
+val data = Cbor.decodeFromencodeToByteArray<Data>(bytes)
+
+val string = Json.encodeToString(...)
+val data = Json.decodeFromString<Data>("""{"a":42, "b": "str"}""")
 ```

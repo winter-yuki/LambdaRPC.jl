@@ -9,6 +9,7 @@ using Communicator
 
 @libclient begin
     square::UInt32 => UInt32
+    # square:"square"::UInt32 => UInt32
 #     distance::(Point, Point) => Double
 #     makePoint::(Double, Double) => Point
 #     any::(Vector{Int64}, Int64 => Bool) => Bool
@@ -20,8 +21,10 @@ using .Lib
 using Communicator
 
 function main()
-    setendpoint(Lib.lib, "tcp://127.0.0.1:8888")
+    endpoint = "tcp://127.0.0.1:8888"
+    setendpoint(Lib.lib, endpoint)
     @assert Lib.square(UInt32(2)) == 4
+    # @assert Lib.square[endpoint](UInt32(2)) == 4
 
     # setendpoint(client, "tcp://127.0.0.1:8888")
     # setserializer(client, Cbor)
