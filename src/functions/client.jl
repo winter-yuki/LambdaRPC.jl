@@ -1,6 +1,9 @@
 import JSON
 using UUIDs
 using .io.lambdarpc.transport.grpc
+using .IoClients
+using gRPCClient
+
 
 Base.@kwdef mutable struct ClientFunctionConfiguration
     serviceId::UUID
@@ -26,9 +29,24 @@ function (f::ClientFunction1{A,R})(arg::A)::R where {A,R}
             ),
         ),
     )
-    client = LibServiceClient(f.conf.endpoint.address * string(f.conf.endpoint.port))
-    # @sync begin
-    #     outMessages = Channel
-    # end
-    JSON.parse(String(message.initialRequest.executeRequest.args[1].data))
+    controller = gRPCController()
+    channel = gRPCChannel(f.conf.endpoint.address * ":" * string(f.conf.endpoint.port))
+    stub = LibServiceBlockingStub(channel)
+    @sync begin
+        inMessages = Channel{InMessage}(1)
+        # @async begin
+        put!(inMessages, message)
+        close(inMessages)
+        # end
+        outMessages, status_future = execute(stub, controller, inMessages)
+        # @async begin
+        for outMessage in outMessages
+            data = outMessage.finalResponse.result.data
+            return JSON.parse(String(data))
+        end
+        # end
+        # @async begin
+        #     gRPCCheck(status_future)
+        # end
+    end
 end

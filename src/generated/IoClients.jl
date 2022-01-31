@@ -39,7 +39,7 @@ end
 show(io::IO, client::LibServiceBlockingClient) = print(io, "LibServiceBlockingClient(", client.channel.baseurl, ")")
 show(io::IO, client::LibServiceClient) = print(io, "LibServiceClient(", client.channel.baseurl, ")")
 
-import .io.lambdarpc.transport.grpc: execute
+import .io.lambdarpc.transport.grpc: execute, Function as MyFunction
 """
     execute
 
@@ -47,7 +47,7 @@ import .io.lambdarpc.transport.grpc: execute
 - output: Channel{io.lambdarpc.transport.grpc.OutMessage}
 """
 execute(client::LibServiceBlockingClient, inp::Channel{io.lambdarpc.transport.grpc.InMessage}) = execute(client.stub, client.controller, inp)
-execute(client::LibServiceClient, inp::Channel{io.lambdarpc.transport.grpc.InMessage}, done::Function) = execute(client.stub, client.controller, inp, done)
+execute(client::LibServiceClient, inp::Channel{io.lambdarpc.transport.grpc.InMessage}, done::MyFunction) = execute(client.stub, client.controller, inp, done)
 
 # end service: io.lambdarpc.transport.grpc.LibService
 
