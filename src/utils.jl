@@ -1,9 +1,7 @@
 Endpoint = String
 
-function use(f, resource, close = close)
-    try
-        f(resource)
-    finally
-        close(resource)
-    end
+function endpoint(address::String, port::Int)::Endpoint
+    address * string(port)
 end
+
+AccessName = String

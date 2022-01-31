@@ -66,7 +66,7 @@ function meta(::Type{ClientFunction})
     ProtoBuf.metalock() do
         if !isassigned(__meta_ClientFunction)
             __meta_ClientFunction[] = target = ProtoMeta(ClientFunction)
-            allflds = Pair{Symbol,Union{Type,String}}[:accessName => AbstractString, :serviceURL => AbstractString, :serviceUUID => AbstractString]
+            allflds = Pair{Symbol,Union{Type,String}}[:accessName => AbstractString, :serviceURL => AbstractString, :serviceId => AbstractString]
             meta(target, ClientFunction, allflds, ProtoBuf.DEF_REQ, ProtoBuf.DEF_FNUM, ProtoBuf.DEF_VAL, ProtoBuf.DEF_PACK, ProtoBuf.DEF_WTYPES, ProtoBuf.DEF_ONEOFS, ProtoBuf.DEF_ONEOF_NAMES)
         end
         __meta_ClientFunction[]
@@ -77,7 +77,7 @@ function Base.getproperty(obj::ClientFunction, name::Symbol)
         return (obj.__protobuf_jl_internal_values[name])::AbstractString
     elseif name === :serviceURL
         return (obj.__protobuf_jl_internal_values[name])::AbstractString
-    elseif name === :serviceUUID
+    elseif name === :serviceId
         return (obj.__protobuf_jl_internal_values[name])::AbstractString
     else
         getfield(obj, name)

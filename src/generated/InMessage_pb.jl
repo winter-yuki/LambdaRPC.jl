@@ -27,14 +27,14 @@ function meta(::Type{InitialRequest})
     ProtoBuf.metalock() do
         if !isassigned(__meta_InitialRequest)
             __meta_InitialRequest[] = target = ProtoMeta(InitialRequest)
-            allflds = Pair{Symbol,Union{Type,String}}[:serviceUUID => AbstractString, :executeRequest => ExecuteRequest]
+            allflds = Pair{Symbol,Union{Type,String}}[:serviceId => AbstractString, :executeRequest => ExecuteRequest]
             meta(target, InitialRequest, allflds, ProtoBuf.DEF_REQ, ProtoBuf.DEF_FNUM, ProtoBuf.DEF_VAL, ProtoBuf.DEF_PACK, ProtoBuf.DEF_WTYPES, ProtoBuf.DEF_ONEOFS, ProtoBuf.DEF_ONEOF_NAMES)
         end
         __meta_InitialRequest[]
     end
 end
 function Base.getproperty(obj::InitialRequest, name::Symbol)
-    if name === :serviceUUID
+    if name === :serviceId
         return (obj.__protobuf_jl_internal_values[name])::AbstractString
     elseif name === :executeRequest
         return (obj.__protobuf_jl_internal_values[name])::ExecuteRequest

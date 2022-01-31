@@ -1,5 +1,13 @@
-# communicator-jl
+# λRPC
 
+## Run examples
+
+```bash
+$ cd LambdaRPC.jl
+$ julia --project=. src/examples/basic/client.jl
+```
+
+<!--
 ## Run examples
 
 ```
@@ -71,4 +79,4 @@ val data = Cbor.decodeFromencodeToByteArray<Data>(bytes)
 
 val string = Json.encodeToString(...)
 val data = Json.decodeFromString<Data>("""{"a":42, "b": "str"}""")
-```
+``` -->
