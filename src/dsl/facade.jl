@@ -1,7 +1,9 @@
-macro facade(declarations::Expr)
+using UUIDs
+
+macro facade(serviceId::Union{Symbol,String}, declarations::Expr)
     libname = nameof(__module__) |> string |> lowercase |> Symbol
-    default = ClientFunctionDefaultConfiguration()
-    Core.eval(__module__, :($libname = $default))
+    conf = ClientFunctionConfiguration(serviceId = UUID(Core.eval(__module__, serviceId)))
+    Core.eval(__module__, :($libname = $conf))
 
     @assert declarations.head == :block
     for declaration in declarations.args
@@ -13,15 +15,11 @@ macro facade(declarations::Expr)
         (name, arg) = left.args
         arg = Core.eval(__module__, arg)
         ret = Core.eval(__module__, ret)
-        f = ClientFunction1{arg,ret}(default, nothing, string(name))
+        f = ClientFunction1{arg,ret}(conf, nothing, string(name))
         Core.eval(__module__, :($name = $f))
     end
 end
 
-function setendpoint(
-    client::ClientFunctionDefaultConfiguration,
-    address::Address,
-    port::Port,
-)
+function setendpoint(client::ClientFunctionConfiguration, address::Address, port::Port)
     client.endpoint = Endpoint(address, port)
 end

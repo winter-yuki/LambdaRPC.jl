@@ -2,12 +2,13 @@ import JSON
 using UUIDs
 using .io.lambdarpc.transport.grpc
 
-Base.@kwdef mutable struct ClientFunctionDefaultConfiguration
+Base.@kwdef mutable struct ClientFunctionConfiguration
+    serviceId::UUID
     endpoint::Union{Nothing,Endpoint} = nothing
 end
 
 struct ClientFunction1{A,R} <: Function1{A,R}
-    default::ClientFunctionDefaultConfiguration
+    conf::ClientFunctionConfiguration
     endpoint::Union{Nothing,Endpoint}
     accessName::AccessName
 end
@@ -17,7 +18,7 @@ function (f::ClientFunction1{A,R})(arg::A)::R where {A,R}
     e = Entity(data = Vector{Int8}(codeunits(s)))
     message = InMessage(
         initialRequest = InitialRequest(
-            serviceId = "",
+            serviceId = string(f.conf.serviceId),
             executeRequest = ExecuteRequest(
                 accessName = f.accessName,
                 executionId = string(uuid4()),

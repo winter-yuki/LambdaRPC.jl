@@ -2,7 +2,7 @@ module Lib
 
 using LambdaRPC
 
-@facade begin
+@facade "f74127d2-d27f-4271-b46e-10b79143260e" begin
     add5::Int => Int
 end
 
