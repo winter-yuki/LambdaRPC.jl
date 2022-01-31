@@ -1,7 +1,9 @@
-Endpoint = String
+Address = String
+Port = Int
 
-function endpoint(address::String, port::Int)::Endpoint
-    address * string(port)
+struct Endpoint
+    address::Address
+    port::Port
 end
 
 AccessName = String

@@ -2,6 +2,7 @@ module LambdaRPC
 
 export tmp, @facade, setendpoint
 
+include("generated/io.jl")
 include("utils.jl")
 include("functions/functions.jl")
 include("functions/client.jl")

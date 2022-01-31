@@ -13,11 +13,15 @@ macro facade(declarations::Expr)
         (name, arg) = left.args
         arg = Core.eval(__module__, arg)
         ret = Core.eval(__module__, ret)
-        f = ClientFunction1{arg,ret}(default, "", string(name))
+        f = ClientFunction1{arg,ret}(default, nothing, string(name))
         Core.eval(__module__, :($name = $f))
     end
 end
 
-function setendpoint(client::ClientFunctionDefaultConfiguration, address::String, port::Int)
-    client.endpoint = endpoint(address, port)
+function setendpoint(
+    client::ClientFunctionDefaultConfiguration,
+    address::Address,
+    port::Port,
+)
+    client.endpoint = Endpoint(address, port)
 end
