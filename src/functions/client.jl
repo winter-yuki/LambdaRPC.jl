@@ -26,5 +26,9 @@ function (f::ClientFunction1{A,R})(arg::A)::R where {A,R}
             ),
         ),
     )
+    client = LibServiceClient(f.conf.endpoint.address * string(f.conf.endpoint.port))
+    # @sync begin
+    #     outMessages = Channel
+    # end
     JSON.parse(String(message.initialRequest.executeRequest.args[1].data))
 end
